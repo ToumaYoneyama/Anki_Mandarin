@@ -49,3 +49,27 @@ CSV_FILENAME = "YOUR_GOOGLE_SHEET_CSV_LINK"
 # Must match your Anki Deck/Note Type exactly
 ANKI_DECK_NAME = "簡体中文::My Generated Mandarin Deck"
 ANKI_MODEL_NAME = "Mandarin Romantic Model"
+
+### 📊 Google Sheet Format
+The script expects a Google Sheet with the following headers (order doesn't matter, names must be close):
+* `Word` / `Vocabulary`
+* `Pinyin`
+* `Definition`
+* `Example Hanzi`
+* `Example Pinyin`
+* `Literal Meaning`
+* `Natural Translation`
+
+## 🚀 Usage
+
+1. **Open Anki** (The script needs to talk to the app).
+2. Run the script:
+    ```bash
+    python update_anki.py
+    ```
+3. **Choose your sync mode** at the prompt:
+    * **Press Enter:** Scans and syncs the entire spreadsheet.
+    * **Type Numbers:** Sync specific rows (e.g., `20` or `10-15` or `5, 8, 10`).
+
+## 📝 License
+[MIT](https://choosealicense.com/licenses/mit/)

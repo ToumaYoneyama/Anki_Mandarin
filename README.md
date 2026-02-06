@@ -49,6 +49,7 @@ CSV_FILENAME = "YOUR_GOOGLE_SHEET_CSV_LINK"
 # Must match your Anki Deck/Note Type exactly
 ANKI_DECK_NAME = "簡体中文::My Generated Mandarin Deck"
 ANKI_MODEL_NAME = "Mandarin Romantic Model"
+```
 
 ### 📊 Google Sheet Format
 The script expects a Google Sheet with the following headers (order doesn't matter, names must be close):

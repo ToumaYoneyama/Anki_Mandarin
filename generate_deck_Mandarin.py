@@ -31,7 +31,15 @@ STYLE = """
 /* Main Word Section */
 .vocab { font-size: 48px; font-weight: bold; margin-bottom: 5px; color: #000; }
 .vocab-pinyin { color: #DAA520; font-size: 24px; font-style: italic; margin-bottom: 10px; }
-.definition { color: #4682B4; font-weight: bold; font-size: 20px; margin: 10px 0; }
+
+/* Definition Section */
+.definition { 
+    color: #4682B4; 
+    font-weight: bold; 
+    font-size: 20px; 
+    margin: 15px 0; 
+    line-height: 1.4; /* Better spacing for multi-line defs */
+}
 
 /* Sentence List */
 ul { display: inline-block; text-align: left; margin: 0; padding: 0 10px; list-style-type: none; width: 95%; }
@@ -47,14 +55,14 @@ li { margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
     color: #888; 
     display: block; 
     margin-top: 4px; 
-    font-family: "Courier New", monospace; /* Monospace to emphasize structure */
+    font-family: "Courier New", monospace; 
 }
 .sent-lit::before { content: "【直訳】 "; opacity: 0.5; }
 
 /* Natural Japanese (Translation) */
 .sent-nat { 
     font-size: 16px; 
-    color: #2E8B57; /* SeaGreen for Natural flow */
+    color: #2E8B57; 
     display: block; 
     margin-top: 2px; 
     font-weight: bold;
@@ -86,10 +94,6 @@ try:
     df = pd.read_csv(CSV_FILENAME)
     # 1. Clean Column Names (Strip spaces)
     df.columns = [c.strip() for c in df.columns]
-    
-    # 2. DEBUG: Print columns so we can see what Python sees
-    print("Found Columns:", df.columns.tolist())
-
 except Exception as e:
     print(f"Error loading CSV: {e}")
     exit()
@@ -109,7 +113,10 @@ my_model = genanki.Model(
     ],
     templates=[{
         'name': 'Card 1',
+        # FRONT: Vocabulary only
         'qfmt': '<div class="vocab">{{Vocabulary}}</div>',
+        
+        # BACK: Audio, Pinyin, Definition, Sentences
         'afmt': '''{{FrontSide}}
                    <hr id=answer>
                    {{Audio}}<br>
@@ -131,13 +138,10 @@ print(f"Found {len(df)} words. Checking history...")
 count_new = 0
 for index, row in df.iterrows():
     # --- SMART COLUMN FINDER ---
-    # We find the column names dynamically to avoid KeyErrors
     col_word   = next((c for c in df.columns if 'Word' in c or 'Vocabulary' in c), None)
     col_pinyin = next((c for c in df.columns if 'Pinyin' in c and 'Example' not in c), None)
-    # Looks for 'Definition', 'Meaning', or 'Translation' (but excludes the sentence translation column)
     col_def    = next((c for c in df.columns if ('Definition' in c or 'Meaning' in c) and 'Sentence' not in c), None)
     
-    # If we can't find the Word column, skip row
     if not col_word: 
         print("!! Error: Could not find a 'Word' column.")
         break
@@ -150,10 +154,12 @@ for index, row in df.iterrows():
     try:
         # --- 1. BASIC DATA ---
         vocab_pinyin = str(row[col_pinyin]) if col_pinyin and pd.notna(row[col_pinyin]) else ""
-        vocab_def    = str(row[col_def])    if col_def    and pd.notna(row[col_def])    else ""
+        
+        # DEFINITION FIX: Replace semicolons with HTML line breaks
+        raw_def = str(row[col_def]) if col_def and pd.notna(row[col_def]) else ""
+        vocab_def = raw_def.replace('；', '<br>').replace(';', '<br>')
 
         # --- 2. COMPLEX SENTENCES (4 Columns) ---
-        # Find these columns dynamically too
         c_hanzi = next((c for c in df.columns if 'Example' in c and 'Hanzi' in c), None)
         c_pinyin = next((c for c in df.columns if 'Example' in c and 'Pinyin' in c), None)
         c_lit = next((c for c in df.columns if 'Literal' in c), None)
@@ -187,7 +193,6 @@ for index, row in df.iterrows():
 
         # --- 3. MEDIA (Disabled) ---
         image_html = "" 
-        # We leave this empty, but keep the logic simple
 
         # --- 4. AUDIO ---
         audio_filename = f"audio_{word}_{random.randint(100,999)}.mp3"
@@ -208,8 +213,6 @@ for index, row in df.iterrows():
     except Exception as e:
         print(f"!! CRITICAL ERROR processing '{word}': {e}")
     
-    # Removed sleep because without Google API, we can go fast!
-
 if count_new > 0:
     my_package.media_files = media_files
     my_package.write_to_file(DECK_FILENAME)
